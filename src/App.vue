@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-spark-dark via-spark-night to-spark-secondary/20">
+  <div class="min-h-screen bg-gradient-to-br from-spark-dark via-spark-night to-spark-secondary/20 pb-20">
     <header class="glass-card mx-4 mt-4 p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -7,85 +7,122 @@
             <Sparkles class="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 class="text-xl font-bold text-white">Spark City</h1>
-            <p class="text-xs text-white/60">把你的人生变成一座城市</p>
+            <h1 class="text-xl font-bold text-white">{{ currentTitle }}</h1>
+            <p class="text-xs text-white/60">{{ currentSubtitle }}</p>
           </div>
         </div>
         
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5">
             <Zap class="w-5 h-5 text-spark-energy" />
             <span class="text-spark-energy font-bold">{{ gameEngine.state.player.total_energy.toFixed(1) }}</span>
-            <span class="text-white/50 text-sm">能量</span>
           </div>
           
-          <div class="flex items-center gap-2">
-            <User class="w-5 h-5 text-white/70" />
-            <span class="text-white font-medium">Lv.{{ gameEngine.state.player.level }}</span>
+          <div class="flex items-center gap-1">
+            <User class="w-4 h-4 text-white/70" />
+            <span class="text-white font-medium text-sm">Lv.{{ gameEngine.state.player.level }}</span>
           </div>
-          
-          <button @click="resetGame" class="text-white/50 hover:text-white transition-colors">
-            <RotateCcw class="w-5 h-5" />
-          </button>
         </div>
       </div>
     </header>
 
-    <main class="container mx-auto px-4 py-6">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-          <CityView />
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ActionPanel />
-            <div class="space-y-6">
-              <LetterBox />
-            </div>
-          </div>
-        </div>
-        
-        <div class="space-y-6">
-          <TopicManager />
-          
-          <div class="glass-card p-4">
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Users class="w-5 h-5 text-blue-400" />
-              居民列表
-            </h3>
-            
-            <div class="space-y-3 max-h-[300px] overflow-y-auto">
-              <div 
-                v-for="resident in gameEngine.state.residents.slice(0, 10)" 
-                :key="resident.id"
-                class="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
-              >
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-spark-primary/30 to-spark-secondary/30 flex items-center justify-center">
-                  <User class="w-5 h-5 text-white/70" />
-                </div>
-                <div class="flex-1">
-                  <p class="text-white font-medium text-sm">{{ resident.name }}</p>
-                  <p class="text-white/50 text-xs">{{ resident.occupationName }} · {{ resident.age }}岁</p>
-                </div>
-                <Heart class="w-4 h-4 text-pink-400" />
-              </div>
-            </div>
-            
-            <p v-if="gameEngine.state.residents.length > 10" class="text-white/40 text-xs mt-2 text-center">
-              还有 {{ gameEngine.state.residents.length - 10 }} 位居民...
-            </p>
-          </div>
+    <main class="px-4 py-4">
+      <div v-show="activeTab === 'city'" class="space-y-4">
+        <CityView />
+        <ActionPanel />
+      </div>
 
-          <button 
-            @click="openSleepModal"
-            class="w-full glass-card p-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-colors group"
-          >
-            <Moon class="w-6 h-6 text-indigo-400 group-hover:animate-pulse" />
-            <span class="text-white font-medium">结束今天</span>
-            <span class="text-white/50 text-sm">(目标: {{ gameEngine.state.player.sleep_target }}:00)</span>
-          </button>
+      <div v-show="activeTab === 'residents'">
+        <ResidentList />
+      </div>
+
+      <div v-show="activeTab === 'letters'">
+        <LetterBox />
+      </div>
+
+      <div v-show="activeTab === 'topics'">
+        <TopicManager />
+      </div>
+
+      <div v-show="activeTab === 'profile'" class="space-y-4">
+        <div class="glass-card p-6">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-spark-primary to-spark-secondary flex items-center justify-center">
+              <User class="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-white">市长</h2>
+              <p class="text-white/60 text-sm">Lv.{{ gameEngine.state.player.level }} · 第 {{ gameEngine.state.city.day }} 天</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="flex items-center gap-2 mb-1">
+                <Zap class="w-4 h-4 text-spark-energy" />
+                <span class="text-white/60 text-xs">总能量</span>
+              </div>
+              <p class="text-spark-energy font-bold text-lg">{{ gameEngine.state.player.total_energy.toFixed(1) }}</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="flex items-center gap-2 mb-1">
+                <Flame class="w-4 h-4 text-orange-400" />
+                <span class="text-white/60 text-xs">连续天数</span>
+              </div>
+              <p class="text-orange-400 font-bold text-lg">{{ gameEngine.state.player.streak }} 天</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="flex items-center gap-2 mb-1">
+                <Building2 class="w-4 h-4 text-blue-400" />
+                <span class="text-white/60 text-xs">解锁建筑</span>
+              </div>
+              <p class="text-blue-400 font-bold text-lg">{{ gameEngine.state.city.unlocked_buildings.length }}</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="flex items-center gap-2 mb-1">
+                <Users class="w-4 h-4 text-pink-400" />
+                <span class="text-white/60 text-xs">城市人口</span>
+              </div>
+              <p class="text-pink-400 font-bold text-lg">{{ gameEngine.state.city.population }}</p>
+            </div>
+          </div>
         </div>
+
+        <div class="glass-card p-4 space-y-3">
+          <h3 class="text-white font-bold mb-2 flex items-center gap-2">
+            <Moon class="w-5 h-5 text-indigo-400" />
+            作息设置
+          </h3>
+          <div class="flex items-center justify-between">
+            <span class="text-white/70 text-sm">早睡目标</span>
+            <span class="text-white font-medium">{{ gameEngine.state.player.sleep_target }}:00</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-white/70 text-sm">今日能量获取</span>
+            <span class="text-spark-energy font-medium">{{ gameEngine.state.player.today_energy.toFixed(1) }}</span>
+          </div>
+        </div>
+
+        <button 
+          @click="openSleepModal"
+          class="w-full glass-card p-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-colors group"
+        >
+          <Moon class="w-6 h-6 text-indigo-400 group-hover:animate-pulse" />
+          <span class="text-white font-medium">结束今天</span>
+          <span class="text-white/50 text-sm">(目标: {{ gameEngine.state.player.sleep_target }}:00)</span>
+        </button>
+
+        <button 
+          @click="resetGame"
+          class="w-full glass-card p-4 flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors text-red-400"
+        >
+          <RotateCcw class="w-5 h-5" />
+          <span class="font-medium">重新开始</span>
+        </button>
       </div>
     </main>
+
+    <BottomNav :active="activeTab" @change="activeTab = $event" />
 
     <SleepModal 
       v-if="showSleepModal || gameEngine.state.is_sleeping || gameEngine.state.is_night" 
@@ -135,18 +172,45 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Sparkles, Zap, User, RotateCcw, Moon, Users } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { Sparkles, Zap, User, RotateCcw, Moon, Users, Building2, Flame } from 'lucide-vue-next';
 import { gameEngine } from './engine/GameEngine.js';
 import CityView from './components/CityView.vue';
 import ActionPanel from './components/ActionPanel.vue';
 import LetterBox from './components/LetterBox.vue';
 import TopicManager from './components/TopicManager.vue';
+import ResidentList from './components/ResidentList.vue';
 import SleepModal from './components/SleepModal.vue';
+import BottomNav from './components/BottomNav.vue';
 
+const activeTab = ref('city');
 const showSleepModal = ref(false);
 const showEndDayModal = ref(false);
 const sleepTime = ref(22);
+
+const currentTitle = computed(() => {
+  const titles = {
+    city: 'Spark City',
+    residents: '居民',
+    letters: '信箱',
+    topics: '话题库',
+    profile: '我的'
+  };
+  return titles[activeTab.value] || 'Spark City';
+});
+
+const currentSubtitle = computed(() => {
+  if (activeTab.value === 'city') {
+    return '把你的人生变成一座城市';
+  }
+  const subtitles = {
+    residents: `${gameEngine.state.residents.length} 位居民`,
+    letters: '来自居民的信',
+    topics: '口语练习话题',
+    profile: '第 ' + gameEngine.state.city.day + ' 天'
+  };
+  return subtitles[activeTab.value] || '';
+});
 
 function openSleepModal() {
   showEndDayModal.value = true;
@@ -170,6 +234,7 @@ function resetGame() {
   if (confirm('确定要重新开始吗？所有进度将会丢失。')) {
     gameEngine.reset();
     showSleepModal.value = false;
+    activeTab.value = 'city';
   }
 }
 </script>
