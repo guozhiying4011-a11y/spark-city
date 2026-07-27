@@ -9,10 +9,10 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  font-family: 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive, sans-serif;
+  background: linear-gradient(180deg, #8fa346 0%, #6D7E34 60%, #4a5a20 100%);
   min-height: 100vh;
-  color: #f8fafc;
+  color: #642D0E;
 }
 
 #app {
@@ -22,29 +22,66 @@ body {
 
 @layer components {
   .glass-card {
-    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-xl;
+    background: linear-gradient(135deg, #fef3e2 0%, #f5e6c8 100%);
+    border: 3px solid #642D0E;
+    border-radius: 16px;
+    box-shadow: 0 8px 0 rgba(61, 26, 7, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+    position: relative;
+  }
+  
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px; right: 2px; bottom: 2px;
+    border: 1px solid rgba(100, 45, 14, 0.15);
+    border-radius: 12px;
+    pointer-events: none;
   }
   
   .energy-glow {
-    @apply shadow-[0_0_20px_rgba(251,191,36,0.5)];
+    box-shadow: 0 0 20px rgba(251, 143, 78, 0.6);
   }
   
   .spark-btn {
-    @apply px-4 py-2 bg-spark-primary hover:bg-spark-secondary rounded-lg transition-all duration-300 font-medium;
+    padding: 8px 16px;
+    background: linear-gradient(180deg, #FB8F4E 0%, #e67a3a 100%);
+    color: white;
+    border: 2px solid #642D0E;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #642D0E;
+    transition: all 0.1s;
+    font-family: inherit;
+  }
+  
+  .spark-btn:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #642D0E;
+  }
+  
+  .spark-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #642D0E;
   }
   
   .spark-btn-secondary {
-    @apply px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 font-medium;
+    padding: 8px 16px;
+    background: linear-gradient(180deg, #f9cca2 0%, #e8b885 100%);
+    color: #642D0E;
+    border: 2px solid #642D0E;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #642D0E;
+    transition: all 0.1s;
+    font-family: inherit;
   }
-}
-
-@keyframes cityGlow {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
-}
-
-.city-building {
-  animation: cityGlow 3s ease-in-out infinite;
+  
+  .spark-btn-secondary:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #642D0E;
+  }
 }
 
 @keyframes grow {
@@ -56,37 +93,21 @@ body {
   animation: grow 0.5s ease-out forwards;
 }
 
-@keyframes nightFade {
-  0% { filter: brightness(1); }
-  100% { filter: brightness(0.3); }
-}
-
-.night-mode {
-  animation: nightFade 2s ease-in-out forwards;
-}
-
-@keyframes sunrise {
-  0% { filter: brightness(0.3); }
-  100% { filter: brightness(1); }
-}
-
-.sunrise-mode {
-  animation: sunrise 2s ease-in-out forwards;
-}
-
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f9cca2;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 4px;
+  background: #8b4513;
+  border-radius: 5px;
+  border: 2px solid #f9cca2;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: #642d0e;
 }

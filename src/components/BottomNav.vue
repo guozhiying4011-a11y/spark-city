@@ -1,38 +1,83 @@
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 z-40 glass-card rounded-b-none border-t-0 border-b-0">
-    <div class="flex items-center justify-around py-2 px-2">
+  <nav class="bottom-nav">
+    <div class="nav-inner">
       <button
         v-for="tab in tabs"
         :key="tab.id"
         @click="$emit('change', tab.id)"
-        class="flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-300"
-        :class="active === tab.id ? 'bg-spark-primary/30 text-white' : 'text-white/60 hover:text-white/80'"
+        class="nav-btn"
+        :class="{ 'nav-btn-active': active === tab.id }"
       >
-        <component :is="tab.icon" class="w-5 h-5" />
-        <span class="text-xs font-medium">{{ tab.name }}</span>
+        <component :is="tab.icon" class="nav-icon" />
+        <span class="nav-name">{{ tab.name }}</span>
       </button>
     </div>
-    <div class="h-safe-area-inset-bottom bg-transparent"></div>
+    <div class="nav-bottom-space"></div>
   </nav>
 </template>
 
 <script setup>
-import { Building2, Users, Mail, BookOpen, User } from 'lucide-vue-next';
+import { Building2, Zap, Users, Mail, User } from 'lucide-vue-next';
 
 defineProps({
-  active: {
-    type: String,
-    default: 'city'
-  }
+  active: { type: String, default: 'city' }
 });
-
 defineEmits(['change']);
 
 const tabs = [
   { id: 'city', name: '城市', icon: Building2 },
+  { id: 'action', name: '行动', icon: Zap },
   { id: 'residents', name: '居民', icon: Users },
   { id: 'letters', name: '信件', icon: Mail },
-  { id: 'topics', name: '话题', icon: BookOpen },
   { id: 'profile', name: '我的', icon: User }
 ];
 </script>
+
+<style scoped>
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: linear-gradient(180deg, #fef3e2 0%, #f5e6c8 100%);
+  border-top: 3px solid #642D0E;
+  border-radius: 0;
+  box-shadow: 0 -4px 0 rgba(61, 26, 7, 0.2);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6px 4px;
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #8b4513;
+}
+.nav-btn-active {
+  background: linear-gradient(180deg, #FB8F4E 0%, #e67a3a 100%);
+  color: white;
+  box-shadow: 0 3px 0 #642D0E;
+  border: 2px solid #642D0E;
+  padding: 4px 10px;
+}
+
+.nav-icon { width: 22px; height: 22px; }
+.nav-name { font-size: 0.7rem; font-weight: 700; }
+
+.nav-bottom-space {
+  height: env(safe-area-inset-bottom, 0px);
+}
+</style>

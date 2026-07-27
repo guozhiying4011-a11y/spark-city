@@ -93,20 +93,27 @@ function calculateStreak(history, today) {
  }
  return streak;
 }
-function calculateEnergy(behaviorType, duration, streakDays) {
+function calculateEnergy(behaviorType, duration, streakDays, count) {
  const BEHAVIOR_CONFIG = {
- english: { base: 1, maxDaily: 4 },
- speaking: { base: 1.5, maxDaily: 2 },
- reading: { base: 1, maxDaily: 3 },
- creativity: { base: 1.5, maxDaily: 2 },
- exercise: { base: 1, maxDaily: 3 },
- sleep: { base: 1, maxDaily: 1 },
- plan: { base: 0.5, maxDaily: 3 }
+ english: { base: 3, maxDaily: 4, mode: 'duration' },
+ speaking: { base: 4, maxDaily: 2, mode: 'duration' },
+ reading: { base: 3, maxDaily: 3, mode: 'duration' },
+ creativity: { base: 4, maxDaily: 2, mode: 'duration' },
+ exercise: { base: 3, maxDaily: 3, mode: 'duration' },
+ sleep: { base: 5, maxDaily: 1, mode: 'check' },
+ plan: { base: 2, maxDaily: 3, mode: 'count' }
  };
- const config = BEHAVIOR_CONFIG[behaviorType] || { base: 1, maxDaily: 5 };
- const durationBonus = Math.min(duration / 30, 2.0);
- const streakBonus = 1.0 + Math.min(streakDays * 0.05, 0.5);
- return Math.round(config.base * durationBonus * streakBonus * 10) / 10;
+ const config = BEHAVIOR_CONFIG[behaviorType] || { base: 3, maxDaily: 5, mode: 'duration' };
+ const streakBonus = 1.0 + Math.min(streakDays * 0.08, 0.8);
+ let multiplier;
+ if (config.mode === 'count') {
+ multiplier = Math.max(1, count || 1);
+ } else if (config.mode === 'check') {
+ multiplier = 1;
+ } else {
+ multiplier = Math.min((duration || 30) / 30, 2.0);
+ }
+ return Math.round(config.base * multiplier * streakBonus * 10) / 10;
 }
 function getAreaGrowth(behaviorType) {
  const areaMap = {
@@ -269,13 +276,14 @@ export class GameEngine {
  return { success: false, message: '今日该行为已达上限' };
  }
  const streak = calculateStreak(this.state.behaviors, now);
- const energy = calculateEnergy(behavior.type, behavior.duration || 30, streak);
+ const energy = calculateEnergy(behavior.type, behavior.duration, streak, behavior.count);
  const areaGrowth = getAreaGrowth(behavior.type);
  const record = {
  id: `b_${Date.now()}`,
  player_id: this.state.player.id,
  type: behavior.type,
- duration: behavior.duration || 30,
+ duration: behavior.duration || null,
+ count: behavior.count || null,
  energy,
  date: dateStr,
  notes: behavior.notes || '',
@@ -753,6 +761,42 @@ export class GameEngine {
  }
  getResidentById(id) {
  return this.state.residents.find(r => r.id === id);
+ }
+ getResidentAvatar(resident) {
+ const r = new Random(resident.seed + resident.age);
+ const maleFaces = ['👨', '👨‍🦰', '👨‍🦱', '👨‍🦳', '🧔', '👱‍♂️'];
+ const femaleFaces = ['👩', '👩‍🦰', '👩‍🦱', '👩‍🦳', '👱‍♀️', '🧕'];
+ const faces = resident.gender === 'male' ? maleFaces : femaleFaces;
+ return r.choice(faces);
+ }
+ getResidentActivity(resident) {
+ const hour = new Date().getHours();
+ const r = new Random(resident.seed + this.state.city.day + hour);
+ const occupation = resident.occupation;
+ const activities = {
+ teacher: hour >= 8 && hour < 17 ? ['正在给学生上课 📚', '批改作业 ✏️', '准备教案 📝'] : ['在家休息 🏠', '阅读书籍 📖', '备课 📝'],
+ doctor: hour >= 8 && hour < 18 ? ['在医院值班 🏥', '查看病人 🩺', '做手术 🔬'] : ['在家休息 🏠', '研究病例 📋'],
+ artist: ['在画室创作 🎨', '寻找灵感 🌅', '举办画展 🖼️', '整理作品 🎨'],
+ businessman: hour >= 9 && hour < 18 ? ['在商店忙碌 🏪', '招呼客人 🤝', '盘点库存 📦'] : ['在家休息 🏠', '思考生意 💼'],
+ engineer: hour >= 9 && hour < 18 ? ['在工地监工 🏗️', '设计图纸 📐', '解决问题 🔧'] : ['在家休息 🏠', '研究新技术 💻'],
+ student: hour >= 8 && hour < 16 ? ['在学校上课 🏫', '做作业 ✏️', '和同学讨论 💬'] : ['做作业 ✏️', '玩游戏 🎮', '阅读 📖'],
+ farmer: hour >= 6 && hour < 18 ? ['在田里劳作 🌾', '照料庄稼 🌱', '收获农产品 🧺'] : ['在家休息 🏠', '准备明天的工具 🛠️'],
+ chef: hour >= 10 && hour < 22 ? ['在厨房烹饪 🍳', '研发新菜 🥘', '准备食材 🥬'] : ['在家休息 🏠', '研究菜谱 📖'],
+ writer: ['在书房写作 ✍️', '构思新故事 💭', '修改文稿 📝', '寻找素材 🌍'],
+ musician: ['在练习乐器 🎵', '创作新曲 🎼', '排练表演 🎤', '在音乐角演奏 🎶'],
+ nurse: hour >= 8 && hour < 20 ? ['照顾病人 💊', '测量体温 🌡️', '配药 💉'] : ['在家休息 🏠', '学习护理知识 📚'],
+ pilot: ['准备飞行 ✈️', '检查飞机 🔧', '在空中飞行 ☁️', '休息待命 🏠'],
+ professor: ['在大学研究 🔬', '指导学生 🎓', '撰写论文 📝', '做实验 🧪'],
+ architect: ['设计建筑 📐', '查看工地 🏗️', '和客户开会 🤝', '修改方案 ✏️'],
+ shopkeeper: hour >= 9 && hour < 21 ? ['在店里招呼客人 🏪', '整理货架 📦', '记账 ✏️'] : ['在家休息 🏠', '进货 🛒'],
+ retired: ['在公园散步 🚶', '下棋 ♟️', '和老朋友聊天 💬', '照料花草 🌷', '晒太阳 ☀️']
+ };
+ const list = activities[occupation] || ['在城市里生活 🏙️'];
+ return r.choice(list);
+ }
+ setSleepTarget(hour) {
+ this.state.player.sleep_target = hour;
+ this.save();
  }
 }
 export const gameEngine = new GameEngine();
